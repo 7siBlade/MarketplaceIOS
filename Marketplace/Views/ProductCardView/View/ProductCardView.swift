@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ProductCardView: View {
     let product: Product
+    let onFavoriteTap: () -> Void
     
     var body: some View {
         GeometryReader { geometry in
@@ -19,7 +20,7 @@ struct ProductCardView: View {
                     if let uiImage = ImageBase64().imageFromBase64(product.image){
                         CardImageView(uiImage: uiImage, width: size.width, height: size.height)
                         Button{
-                            //action
+                            onFavoriteTap()
                         }label: {
                             Image(systemName: "heart.fill")
                                 .padding(10)
@@ -50,7 +51,7 @@ struct ProductCardView: View {
             }
         }
         .frame(height: UIScreen.main.bounds.width * 0.7)
-        .padding(10)
+        //.padding(10)
     }
 }
 

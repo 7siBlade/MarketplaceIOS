@@ -20,9 +20,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct MarketplaceApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @StateObject private var authViewModel = AuthViewModel()
     var body: some Scene {
         WindowGroup {
-            MainView()
+            ContentView().environmentObject(authViewModel)
         }
     }
 }

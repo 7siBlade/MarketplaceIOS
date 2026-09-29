@@ -14,6 +14,6 @@ struct Product: Identifiable, Codable{
     var description: String
     var image: String
     var price: Int
-    var isFavorite: Bool
-    var quantityInCart: Int?
+    var isFavorite: Bool = false
+    
 }
