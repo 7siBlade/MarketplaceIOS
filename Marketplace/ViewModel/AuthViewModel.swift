@@ -12,6 +12,7 @@ import Combine
 
 @MainActor
 final class AuthViewModel: ObservableObject {
+    @Published var user: AppUser?
     
     @Published var isAuthenticated = false
     @Published var isLoading = true
@@ -19,7 +20,6 @@ final class AuthViewModel: ObservableObject {
     
     private let authService = AuthService()
     private let db = Firestore.firestore()
-    
     private var authStateListener: AuthStateDidChangeListenerHandle?
     
     init() {
@@ -34,78 +34,67 @@ final class AuthViewModel: ObservableObject {
     
     private func setupAuthListener() {
         authStateListener = Auth.auth()
-            .addStateDidChangeListener { [weak self] _, user in
-                
+            .addStateDidChangeListener { [weak self] _, firebaseUser in
                 Task { @MainActor in
-                    self?.isAuthenticated = user != nil
-                    self?.isLoading = false
+                    if let firebaseUser = firebaseUser {
+                        self?.isAuthenticated = true
+                        await self?.fetchUserData(uid: firebaseUser.uid)
+                    } else {
+                        self?.isAuthenticated = false
+                        self?.user = nil
+                        self?.isLoading = false
+                    }
                 }
             }
     }
     
-    func register(
-        email: String,
-        password: String
-    ) async {
-        
+    func fetchUserData(uid: String) async {
         isLoading = true
-        errorMessage = ""
-        
         do {
-            let user = try await authService.register(
-                email: email,
-                password: password
-            )
-            
-            try await createUserDocument(
-                user: user
-            )
-            
+            let snapshot = try await db.collection("users").document(uid).getDocument()
+            self.user = try snapshot.data(as: AppUser.self)
         } catch {
-            errorMessage = error.localizedDescription
+            self.errorMessage = "Erroe loading profile: \(error.localizedDescription)"
         }
-        
-        isLoading = false
+        self.isLoading = false
     }
     
-    func login(
-        email: String,
-        password: String
-    ) async {
-        
-        isLoading = true
-        errorMessage = ""
+    func register(email: String, password: String) async {
+        await MainActor.run { isLoading = true; errorMessage = "" }
         
         do {
-            _ = try await authService.login(
-                email: email,
-                password: password
-            )
+            let firebaseUser = try await authService.register(email: email, password: password)
+            try await createUserDocument(user: firebaseUser)
             
+            await fetchUserData(uid: firebaseUser.uid)
         } catch {
-            errorMessage = error.localizedDescription
+            await MainActor.run { errorMessage = error.localizedDescription; isLoading = false }
         }
-        
-        isLoading = false
+    }
+    
+    func login(email: String, password: String) async {
+        await MainActor.run { isLoading = true; errorMessage = "" }
+        do {
+            _ = try await authService.login(email: email, password: password)
+        } catch {
+            await MainActor.run { errorMessage = error.localizedDescription; isLoading = false }
+        }
     }
     
     func logout() {
         do {
             try authService.logout()
+            self.user = nil
         } catch {
             errorMessage = error.localizedDescription
         }
     }
     
-    private func createUserDocument(
-        user: User
-    ) async throws {
-        try await db
-            .collection("users")
-            .document(user.uid)
-            .setData([
-                "email": user.email ?? "",
-                "createdAt": FieldValue.serverTimestamp()
-            ])
+    private func createUserDocument(user: User) async throws {
+        try await db.collection("users").document(user.uid).setData([
+            "uid": user.uid,
+            "email": user.email ?? "",
+            "createdAt": FieldValue.serverTimestamp()
+        ])
     }
 }
