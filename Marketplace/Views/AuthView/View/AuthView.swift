@@ -8,11 +8,11 @@
 import SwiftUI
 
 struct AuthView: View {
-    
     @EnvironmentObject var viewModel: AuthViewModel
     
     @State private var email = ""
     @State private var password = ""
+    @State private var name = ""
     @State private var isRegisterMode = false
     
     var body: some View {
@@ -23,15 +23,40 @@ struct AuthView: View {
                     .font(.largeTitle)
                     .bold()
                 
+                if isRegisterMode {
+                    TextField("Name", text: $name)
+                        .font(.title2)
+                        .padding(5)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.primary, lineWidth: 2)
+                        )
+                        .padding(1)
+                }
+                
                 TextField("Email", text: $email)
                     .textContentType(.emailAddress)
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
-                    .textFieldStyle(.roundedBorder)
+                    .font(.title2)
+                    .padding(5)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.primary, lineWidth: 2)
+                    )
+                    .padding(1)
+                
+                    
                 
                 SecureField("Password", text: $password)
                     .textContentType(.password)
-                    .textFieldStyle(.roundedBorder)
+                    .font(.title2)
+                    .padding(5)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.primary, lineWidth: 2)
+                    )
+                    .padding(1)
                 
                 if !viewModel.errorMessage.isEmpty {
                     Text(viewModel.errorMessage)
@@ -44,7 +69,8 @@ struct AuthView: View {
                         if isRegisterMode {
                             await viewModel.register(
                                 email: email,
-                                password: password
+                                password: password,
+                                name: name
                             )
                         } else {
                             await viewModel.login(

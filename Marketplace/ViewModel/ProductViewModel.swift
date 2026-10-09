@@ -17,6 +17,7 @@ final class ProductViewModel: ObservableObject {
 
     private let productService = ProductService()
     private let favoritesService = FavoritesService()
+    
 
     func loadProducts() async {
         isLoading = true
@@ -38,8 +39,11 @@ final class ProductViewModel: ObservableObject {
             let favoriteIds =
                 try await favoritesService.getFavorites()
             for index in products.indices {
+                guard let productId = products[index].id else {
+                    continue
+                }
                 products[index].isFavorite =
-                favoriteIds.contains(products[index].id!)
+                favoriteIds.contains(productId)
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -66,7 +70,6 @@ final class ProductViewModel: ObservableObject {
                 )
             }
             products[index].isFavorite.toggle()
-
         } catch {
             errorMessage = error.localizedDescription
             print("Favorite error: \(error)")

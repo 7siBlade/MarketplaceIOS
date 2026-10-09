@@ -16,30 +16,39 @@ struct ProductCardView: View {
             let size = geometry.size
             
             ZStack(alignment: .bottom) {
-                ZStack(alignment: .topTrailing){
-                    if let uiImage = ImageBase64().imageFromBase64(product.image){
-                        CardImageView(uiImage: uiImage, width: size.width, height: size.height)
-                        Button{
-                            onFavoriteTap()
-                        }label: {
-                            Image(systemName: "heart.fill")
-                                .padding(10)
-                                .foregroundStyle(product.isFavorite ? .red : .white)
-                                .background(.black.opacity(0.5))
-                                .clipShape(Circle())
-                                .padding()
+                ZStack(alignment: .topTrailing) {
+                    if let uiImage = ImageBase64().decodeBase64ToImage(product.image) {
+                        NavigationLink() {
+                            FullScreenImageView(uiImage: uiImage)
+                        } label: {
+                            CardImageView(
+                                uiImage: uiImage,
+                                width: size.width,
+                                height: size.height
+                            )
                         }
-                    }else{
+                    } else {
                         ProgressView()
                             .frame(width: size.width, height: size.height)
                     }
-                    
+
+                    Button {
+                        onFavoriteTap()
+                    } label: {
+                        Image(systemName: "heart.fill")
+                            .padding(10)
+                            .foregroundStyle(product.isFavorite ? .red : .white)
+                            .background(.black.opacity(0.5))
+                            .clipShape(Circle())
+                            .padding()
+                    }
+                    .buttonStyle(.borderless)
                 }
                 VStack(alignment: .leading){
                     Text(product.name)
                         .titleFont()
                         .lineLimit(1)
-                    Text("$\(product.price)")
+                    Text("By: \(product.author)")
                         .subTitleFont()
                         .lineLimit(1)
                 }

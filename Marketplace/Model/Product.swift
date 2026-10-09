@@ -13,7 +13,7 @@ struct Product: Identifiable, Codable{
     var name: String
     var description: String
     var image: String
-    var price: Int
+    var author: String
     var isFavorite: Bool = false
     
 }

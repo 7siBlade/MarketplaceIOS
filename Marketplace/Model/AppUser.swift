@@ -10,6 +10,7 @@ import FirebaseFirestore
 
 struct AppUser: Codable {
     let uid: String
+    let name: String
     let email: String
     let createdAt: Date
 }

@@ -59,12 +59,12 @@ final class AuthViewModel: ObservableObject {
         self.isLoading = false
     }
     
-    func register(email: String, password: String) async {
+    func register(email: String, password: String, name: String) async {
         await MainActor.run { isLoading = true; errorMessage = "" }
         
         do {
             let firebaseUser = try await authService.register(email: email, password: password)
-            try await createUserDocument(user: firebaseUser)
+            try await createUserDocument(user: firebaseUser, nameUser: name)
             
             await fetchUserData(uid: firebaseUser.uid)
         } catch {
@@ -90,10 +90,11 @@ final class AuthViewModel: ObservableObject {
         }
     }
     
-    private func createUserDocument(user: User) async throws {
+    private func createUserDocument(user: User, nameUser: String) async throws {
         try await db.collection("users").document(user.uid).setData([
             "uid": user.uid,
             "email": user.email ?? "",
+            "name": nameUser,
             "createdAt": FieldValue.serverTimestamp()
         ])
     }

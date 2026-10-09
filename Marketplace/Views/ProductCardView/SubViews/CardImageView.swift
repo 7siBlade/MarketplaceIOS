@@ -18,6 +18,8 @@ struct CardImageView: View {
                 .scaledToFill()
                 .frame(width: width, height: height)
                 .clipShape(RoundedRectangle(cornerRadius: 20))
+                .clipped()
+                .allowsHitTesting(false)
     }
 }
 
